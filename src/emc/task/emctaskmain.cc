@@ -968,7 +968,12 @@ static int emcTaskPlan(void)
 		break;
 
 		// otherwise we can't handle it
-
+	    case EMC_TASK_PLAN_RUN_TYPE:
+		if (emcGetExternalOffsetApplied()) {
+		    //emcOperatorError(0, _("auto disallowed"));
+		    retval = -1;
+		}
+		break;
 	    default:
 		emcOperatorError(0, _("can't do that (%s:%d) in manual mode"),
 				 emc_symbol_lookup(type),(int) type);
@@ -2105,6 +2110,13 @@ static int emcTaskIssueCommand(NMLmsg * cmd)
 		// now queue up command to resynch interpreter
 		emcTaskQueueCommand(&taskPlanSynchCmd);
 	    }
+            if  (   emcGetExternalOffsetApplied()
+                 && (   (mode_msg->mode == EMC_TASK_MODE_AUTO)
+                     || (mode_msg->mode == EMC_TASK_MODE_MDI) ) ) {
+                emcOperatorError(0, _("Cannot start with EXTERNAL OFFSETS applied"));
+                retval = -1;
+                break;
+            }
 	    retval = emcTaskSetMode(mode_msg->mode);
 	}
 	break;
@@ -2141,6 +2153,11 @@ static int emcTaskIssueCommand(NMLmsg * cmd)
 	break;
 
     case EMC_TASK_PLAN_EXECUTE_TYPE:
+	if (emcGetExternalOffsetApplied()) {
+	    //emcOperatorError(0, _("mdi disallowed"));
+	    retval = -1;
+	    break;
+	}
 	stepping = 0;
 	steppingWait = 0;
 	execute_msg = (EMC_TASK_PLAN_EXECUTE *) cmd;

@@ -2390,7 +2390,6 @@ void EMC_TRAJ_STAT::update(CMS * cms)
     cms->update(probeval);
     cms->update(kinematics_type);
     cms->update(motion_type);
-
 }
 
 /*
